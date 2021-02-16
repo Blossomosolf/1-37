@@ -1,1 +1,74 @@
+import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+from scipy import stats
+import math
+import statistics
+import seaborn as sns
+from IPython.display import display
 
+#讀入資料
+
+df_train = pd.read_csv("Titanic_train.csv")
+
+#計算每一行是否有遺失值，計算遺失比例
+missing_vals = df_train.isnull().sum()/len(df_train)
+missing_vals.sort_values(ascending=False)
+missing_vals = pd.DataFrame(missing_vals,columns=['missing_rate'])
+print(missing_vals)
+
+
+# 細看遺失資料的樣態
+missing_index=data.isnull()
+display(data[missing_index.values==True])
+
+#觀察 Age
+
+print(df_train['Age'].mean()) #age平均
+print(df_train['Age'].std()) #age標準差
+
+
+# 連續型用分布圖行來看
+
+
+g = sns.FacetGrid(df_train, col='Survived')
+g.map(sns.distplot, 'Age', kde=False)
+
+
+g = sns.catplot(x="Pclass", y="Age", hue="Sex",data=df_train,kind="box")
+
+#ValueError: could not convert string to float: 'Male', sklearn 中的 KNN 只能處理數值型態
+
+#轉換型態 
+
+#透過 preprocessing 轉換
+
+from sklearn import preprocessing
+
+#下面兩行程式，讓 Male=1, FeMale-0.
+
+le = preprocessing.LabelEncoder()
+df_train['Pclass']=le.fit_transform(df_train['Pclass'])
+
+df_train['Sex']=le.fit_transform(df_train['Sex'])
+
+data=df_train[['Sex','Age','Pclass']]
+
+# KNN
+#設定用多少鄰居資訊來補值
+
+value_neighbors=1
+from sklearn.impute import KNNImputer
+
+#進行 KNN的一些設定
+imputer = KNNImputer(n_neighbors=value_neighbors)
+
+#把資料放進去，進行補值
+df_filled = pd.DataFrame(imputer.fit_transform(data))
+
+#只呈現有遺失值的資料
+display(data[missing_index.values==True])
+
+#只呈現有遺失值的資料-呈現補值的結果
+display(df_filled[missing_index.values==True])
+              
